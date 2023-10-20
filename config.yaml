@@ -1,0 +1,13 @@
+caul:
+  proxy:
+    log_level: INFO
+    allows: [ ]
+    denys: [ ]
+    domains:
+      - pattern: '.*\.caul$'
+        replace: 127.0.0.1
+        port: 8080
+    uris:
+      - rewriter: RegexRewriter
+        pattern: '/forward/(?P<mode>[^/]*)/(?P<path>.*)'
+        replace: '/$mode/caul/$path'
