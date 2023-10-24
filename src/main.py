@@ -1,12 +1,11 @@
-import logging
 import os
 import sys
 
 import typer
 
-import server_requests
-from config import settings
-from plugins import runner
+from caul_proxy import server_requests
+from caul_proxy.config import settings
+from caul_proxy.plugins import runner
 
 # Remove '' and current working directory from the first entry
 # of sys.path, if present to avoid using current directory
@@ -28,10 +27,9 @@ if __package__ == "":
 
 def main(
         host: str = typer.Option("0.0.0.0"),
-        port: int = typer.Option(2080),
+        port: int = typer.Option(5008),
         timeout: int = typer.Option(60),
         config: str = typer.Option("config.yaml"),
-        log_level: str = typer.Option("info"),
 ):
     # 加载配置文件
     settings.load_yaml(config)

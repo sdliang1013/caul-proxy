@@ -9,8 +9,6 @@ from concurrent import futures
 from pathlib import Path
 from typing import Callable, Any, TypeVar, List
 
-import anyio
-
 _TYPE_PARSERS_ = {
     bool: lambda v: str(v).lower() in ['true', '1', 'yes'] if v else False,
     dict: lambda v: json.loads(v) if v else {},
@@ -64,76 +62,6 @@ async def run_in_threadpool(func: Callable[..., T],
         # loop.run_in_executor doesn't accept 'kwargs', so bind them in here
         func = functools.partial(func, **kwargs)
     return await loop.run_in_executor(None, func, *args)
-
-
-async def read_last(path: str, lines: int = 1) -> (list, int):
-    """
-    读取文件最后的内容
-
-    :param path:
-    :param lines: 最后的行数
-    :return:
-    """
-    lines = max(lines, 1)
-    limit = os.stat(path).st_size
-    async with await anyio.open_file(file=path, mode='rb') as f:  # 打开文件
-        off = 50  # 设置偏移量
-        while True:
-            if off >= limit:
-                await f.seek(0)
-                last_lines = await f.readlines()  # 读取文件指针范围内所有行
-                tell = await f.tell()
-                break
-            await f.seek(-off, 2)  # seek(off, 2)表示文件指针：从文件末尾(2)开始向前50个字符(-50)
-            last_lines = await f.readlines()  # 读取文件指针范围内所有行
-            if len(last_lines) >= lines:  # 判断是否最后至少有两行，这样保证了最后一行是完整的
-                last_lines = last_lines[-lines:]
-                tell = await f.tell()
-                break
-            off *= 2
-
-    return last_lines, tell
-
-
-async def read_lines(path: str, lines: int = 0, offset: int = 0) -> (list, int, bool):
-    size = os.stat(path).st_size
-    content = list()
-    # is end
-    if offset >= size:
-        return content, size, True
-    async with await anyio.open_file(file=path, mode='rb') as f:
-        if offset:
-            await f.seek(offset)
-        if not lines:
-            content = await f.readlines()
-            tell = size
-        else:
-            for _ in range(lines):
-                content.append(await f.readline())
-                tell = await f.tell()
-                if tell >= size:
-                    break
-
-    return content, tell, tell >= size
-
-
-async def read_range(path: str, start: int = 0, end: int = -1) -> bytes:
-    """
-
-    :param path:
-    :param start:
-    :param end:
-    :return: [start, end)
-    """
-    len_file = os.stat(path=path).st_size
-    if end < 0 or end > len_file:
-        end = len_file
-    # end
-    if start >= end or start >= len_file:
-        return b''
-    async with await anyio.open_file(file=path, mode='rb') as file:
-        await file.seek(start)
-        return await file.read(end - start)
 
 
 def text_hash(text: str, types="md5"):

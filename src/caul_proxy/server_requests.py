@@ -5,9 +5,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import requests
 import urllib3.util
 
-import util
-from config import settings, logger
-from plugins import runner
+from caul_proxy import util
+from caul_proxy.config import settings, logger
+from caul_proxy.plugins import runner
 
 
 class ProxyHandler(BaseHTTPRequestHandler):

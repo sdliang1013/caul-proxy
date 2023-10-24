@@ -2,9 +2,8 @@ from typing import List
 
 import urllib3.util
 
-from config import Config, Domain, Uri
-from plugins import T_REWRITER_URI, O_REWRITER_URI, O_REWRITER_DOMAIN
-from plugins.rewriter import RegexRewriter, YhopRewriter, DomainRewriter
+from caul_proxy.config import Config, Domain, Uri
+from caul_proxy.plugins import NS_RW_URI, CACHE_RW_URI, CACHE_RW_DOMAIN, rewriter
 
 
 def rewrite_domain(url_parts: urllib3.util.Url) -> str:
@@ -13,7 +12,7 @@ def rewrite_domain(url_parts: urllib3.util.Url) -> str:
     :param url_parts:
     :return:
     """
-    for rw_domain in O_REWRITER_DOMAIN:
+    for rw_domain in CACHE_RW_DOMAIN:
         if rw_domain.match(url_parts):
             return rw_domain.rewrite(url_parts)
     return f'{url_parts.scheme}://{url_parts.host}:{url_parts.port}'
@@ -25,7 +24,7 @@ def rewrite_uri(url_parts: urllib3.util.Url) -> str:
     :param url_parts:
     :return:
     """
-    for rw_uri in O_REWRITER_URI:
+    for rw_uri in CACHE_RW_URI:
         if rw_uri.match(url_parts):
             return rw_uri.rewrite(url_parts)
     return url_parts.request_uri
@@ -47,9 +46,9 @@ def load_cls(plugin_dir: str):
     :return:
     """
     # rewriter
-    T_REWRITER_URI.update(
-        RegexRewriter=RegexRewriter,
-        YhopRewriter=YhopRewriter,
+    NS_RW_URI.update(
+        RegexRewriter=rewriter.RegexRewriter,
+        YhopRewriter=rewriter.YhopRewriter,
     )
     # todo load from plugin_dir/rewriter
 
@@ -60,9 +59,9 @@ def init_domain_rewriter(rw_list: List[Domain]):
     :param rw_list:
     :return:
     """
-    O_REWRITER_DOMAIN.clear()
+    CACHE_RW_DOMAIN.clear()
     for rw in rw_list:
-        O_REWRITER_DOMAIN.append(DomainRewriter(pattern=rw.pattern, replace=rw.replace, port=rw.port))
+        CACHE_RW_DOMAIN.append(rewriter.DomainRewriter(pattern=rw.pattern, replace=rw.replace, port=rw.port))
 
 
 def init_uri_rewriter(rw_list: List[Uri]):
@@ -71,9 +70,9 @@ def init_uri_rewriter(rw_list: List[Uri]):
     :param rw_list:
     :return:
     """
-    O_REWRITER_URI.clear()
+    CACHE_RW_URI.clear()
     for rw in rw_list:
-        rwr_cls = T_REWRITER_URI.get(rw.rewriter, None)
+        rwr_cls = NS_RW_URI.get(rw.rewriter, None)
         if not rwr_cls:
             raise ModuleNotFoundError(f'Could Not Find Rewriter: {rw.rewriter}')
-        O_REWRITER_URI.append(rwr_cls(pattern=rw.pattern, replace=rw.replace, by_url=rw.full))
+        CACHE_RW_URI.append(rwr_cls(pattern=rw.pattern, replace=rw.replace, by_url=rw.full))

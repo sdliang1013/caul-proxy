@@ -2,7 +2,7 @@ import socket
 import threading
 import urllib.parse
 
-from config import logger
+from caul_proxy.config import logger
 
 
 def create_proxy_server(ip: str = '0.0.0.0', port: int = 1080) -> socket.socket:

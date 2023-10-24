@@ -40,7 +40,7 @@ SOCKS_VERSION = 5  # socks版本
 """
 
 
-class YhopProxy(Tcp):
+class ProxyHandler(Tcp):
     # 用户认证 用户名/密码
     username = 'caul'
     password = 'caulproxy'
@@ -189,7 +189,7 @@ class YhopProxy(Tcp):
 
 def start_server(ip: str = '0.0.0.0', port: int = 1080):
     # 服务器上创建一个TCP多线程服务
-    server = ThreadingTCPServer((ip, port), YhopProxy)
+    server = ThreadingTCPServer((ip, port), ProxyHandler)
     print("**********************************************************")
     print("******************* CaulProxy 1.0.0 **********************")
     print(f"*******************  IP:{ip} PORT:{port} ***********")
